@@ -8,7 +8,9 @@ import Foundation;
 
 extension Double {
 
-    //Возвращает строку с заданным количеством разрядов после запятой для процентных значений
+    /// Конвертирует число в строку в формате процента с заданным количеством символов после разделителя дробной части
+    /// - Parameter fractionalLength: Количество символов после разделителя дробной части
+    /// - Returns: Возвращает строку
     func percentToString(fractionalLength: Int) -> String {
         let defaultFormatter: NumberFormatter = NumberFormatter.defaultPercent;
         defaultFormatter.minimumFractionDigits = fractionalLength;
