@@ -57,6 +57,9 @@ final class MovieQuizViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        imageView.layer.masksToBounds = true
+        imageView.layer.cornerRadius = 20
+        
         show(quiz: convert(model: questions[currentQuestionIndex]))
     }
     
@@ -84,18 +87,14 @@ final class MovieQuizViewController: UIViewController {
         counterLabel.text = step.questionNumber
         imageView.image = step.image
         textLabel.text = step.question
-        imageView.layer.masksToBounds = false
         imageView.layer.borderWidth = 0
-        imageView.layer.cornerRadius = 0
         inButtonPressHandler = false
     }
     
     /// Изменяет цвет рамки, принимая на вход булевое значение, отражающее статус ответа на вопрос
     /// - Parameter isCorrect: булевое значение, отражающее статус ответа на вопрос
     private func showAnswerResult(isCorrect: Bool) {
-        imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
-        imageView.layer.cornerRadius = 20
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
     }
     
