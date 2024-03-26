@@ -15,7 +15,8 @@ extension Date {
 private extension DateFormatter {
     static let defaultDateTime: DateFormatter = {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.YY hh:mm:ss"
+        dateFormatter.dateFormat = "dd.MM.YY HH:mm:ss"
+        dateFormatter.locale = Locale.current
         return dateFormatter
     }()
 }
