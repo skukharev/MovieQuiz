@@ -9,6 +9,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var questionFactory: QuestionFactoryProtocol?
     private var alertPresenter: AlertPresenterProtocol?
     private var currentQuestion: QuizQuestion?
+    private var gameStatistic: StatisticServiceProtocol?
     
     private enum AnswerButton {
         case yes
@@ -31,6 +32,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         
         questionFactory = QuestionFactory(delegate: self)
         alertPresenter = AlertPresenter(view: self)
+        gameStatistic = StatisticServiceImplementation()
         
         restartQuiz()
     }
@@ -119,22 +121,23 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 self.questionFactory?.requestNextQuestion()
             }
         } else {
-            let gameStatistic: StatisticServiceProtocol = StatisticServiceImplementation()
-            gameStatistic.store(correct: correctAnswers, total: questionsAmount)
-            let text = """
-                        Ваш результат: \(correctAnswers.intToString)/\(questionsAmount.intToString)
-                        Количество сыгранных квизов: \(gameStatistic.gamesCount.intToString)
-                        Рекорд: \(gameStatistic.bestGame.correct.intToString)/\(gameStatistic.bestGame.total.intToString) (\(gameStatistic.bestGame.date.dateTimeString))
-                        Средняя точность: \(gameStatistic.totalAccuracy.percentToString(fractionalLength: 2))
-                        """
-            alertPresenter?.showAlert(alert: AlertModel(title: "Этот раунд окончен!",
-                                                       message: text,
-                                                       buttonText: "Сыграть ещё раз!",
-                                                       completion: {[weak self] _ in
-                                                                    guard let self = self else {
-                                                                        return
-                                                                    }
-                                                                    self.restartQuiz()}))
+            if let gameStatistic = gameStatistic {
+                gameStatistic.store(correct: correctAnswers, total: questionsAmount)
+                let text = """
+                            Ваш результат: \(correctAnswers.intToString)/\(questionsAmount.intToString)
+                            Количество сыгранных квизов: \(gameStatistic.gamesCount.intToString)
+                            Рекорд: \(gameStatistic.bestGame.correct.intToString)/\(gameStatistic.bestGame.total.intToString) (\(gameStatistic.bestGame.date.dateTimeString))
+                            Средняя точность: \(gameStatistic.totalAccuracy.percentToString(fractionalLength: 2))
+                            """
+                alertPresenter?.showAlert(alert: AlertModel(title: "Этот раунд окончен!",
+                                                           message: text,
+                                                           buttonText: "Сыграть ещё раз!",
+                                                           completion: {[weak self] _ in
+                                                                        guard let self = self else {
+                                                                            return
+                                                                        }
+                                                                        self.restartQuiz()}))
+            }
         }
     }
     
