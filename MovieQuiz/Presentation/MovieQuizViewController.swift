@@ -4,7 +4,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet private weak var counterLabel: UILabel!
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
-
+    @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
+    
     private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
     private var alertPresenter: AlertPresenterProtocol?
@@ -29,12 +30,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         super.viewDidLoad()
         
         imageView.layer.cornerRadius = 20
-        
-        questionFactory = QuestionFactory(delegate: self)
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         alertPresenter = AlertPresenter(view: self)
         gameStatistic = StatisticServiceImplementation()
-        
-        restartQuiz()
+        showLoadingIndicator()
+        questionFactory?.loadData()
     }
     
     // MARK: - QuestionFactoryDelegate
@@ -46,7 +46,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         currentQuestion = question
         let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in
-            self?.show(quiz: viewModel)
+            guard let self = self else {
+                return
+            }
+            self.show(quiz: viewModel)
         }
     }
     
@@ -63,7 +66,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     /// - Parameter model: Структура с параметрами вопроса
     /// - Returns: Структура с view model вопроса
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let picture = UIImage(named: model.image) ?? UIImage()
+        let picture = UIImage(data: model.image) ?? UIImage()
         let questionNumberText: String = (currentQuestionIndex+1).intToString+"/"+questionsAmount.intToString
         
         return QuizStepViewModel(image: picture, question: model.text, questionNumber: questionNumberText)
@@ -117,7 +120,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                 guard let self = self else {
                     return
                 }
-                
                 self.questionFactory?.requestNextQuestion()
             }
         } else {
@@ -153,4 +155,48 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         questionFactory.requestNextQuestion()
     }
     
+    /// Отображает индикатор загрузки данных
+    func showLoadingIndicator() {
+        activityIndicator.isHidden = false // говорим, что индикатор загрузки не скрыт
+        activityIndicator.startAnimating() // включаем анимацию
+    }
+    
+    /// Скрывает индикатор загрузки данных
+    func hideLoadingIndicator() {
+        activityIndicator.stopAnimating()
+        activityIndicator.isHidden = true
+    }
+    
+    private func showNetworkError(message: String, handler: ((UIAlertAction) -> Void)?) {
+        hideLoadingIndicator() // скрываем индикатор загрузки
+        
+        alertPresenter?.showAlert(alert: AlertModel(title: "Что-то пошло не так(",
+                                                    message: message,
+                                                    buttonText: "Попробовать ещё раз",
+                                                    completion: handler))
+    }
+    
+    func didLoadDataFromServer() {
+        hideLoadingIndicator()
+        restartQuiz()
+    }
+    
+    func didFailToLoadData(with error: any Error) {
+        showNetworkError(message: error.localizedDescription) {[weak self] _ in
+            guard let self = self else {
+                return
+            }
+            showLoadingIndicator()
+            questionFactory?.loadData()
+        }
+    }
+    
+    func didFailToLoadImage(with error: any Error) {
+        showNetworkError(message: error.localizedDescription) {[weak self] _ in
+            guard let self = self else {
+                return
+            }
+            questionFactory?.requestNextQuestion()
+        }
+    }
 }

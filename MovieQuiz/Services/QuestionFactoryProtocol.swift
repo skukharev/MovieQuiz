@@ -7,6 +7,10 @@
 
 import Foundation
 
+/// Протокол фабрики загрузки вопросов квиза
 protocol QuestionFactoryProtocol {
+    /// Функция формирует вопрос квиза из массива скачанных вопросов
     func requestNextQuestion()
+    /// Функция скачивает массив вопросов из базы данных IMDB
+    func loadData()
 }
