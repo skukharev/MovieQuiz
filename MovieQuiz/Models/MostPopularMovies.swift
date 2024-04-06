@@ -32,13 +32,7 @@ struct MostPopularMovie: Codable {
        }
     
     init(from decoder: Decoder) throws {
-        enum CodingKeys: String, CodingKey {
-            case title = "fullTitle"
-            case rating = "imDbRating"
-            case imageURL = "image"
-        }
-        
-        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let container = try decoder.container(keyedBy: MostPopularMoviesCodingKeys.self)
 
         title = try container.decode(String.self, forKey: .title)
         do {
@@ -53,12 +47,60 @@ struct MostPopularMovie: Codable {
         }
         imageURL = try container.decode(URL.self, forKey: .imageURL)
     }
+    
+    init(title: String, rating: Double, imageURL: URL) {
+        self.title = title
+        self.rating = rating
+        self.imageURL = imageURL
+    }
 }
 
 /// Структура для хранения json-структуры с фильмами
 struct MostPopularMovies: Codable {
     /// Сообщение об ошибке
-    let errorMessage: String
+    var errorMessage: String
     /// Массив с информацией о фильмах
     var items: [MostPopularMovie]
+    
+    init(errorMessage: String, items: [MostPopularMovie]) {
+        self.errorMessage = errorMessage
+        self.items = items
+    }
+    
+    func convertToCache() -> MostPopularMoviesCache {
+        var movies = MostPopularMoviesCache(errorMessage: errorMessage, items: [])
+        
+        for movie in items {
+            movies.items.append(MostPopularMovieCache(title: movie.title, rating: movie.rating, imageURL: movie.imageURL))
+        }
+        
+        return(movies)
+    }
+}
+
+struct MostPopularMovieCache: Codable {
+    let title: String
+    let rating: Double
+    let imageURL: URL
+}
+
+struct MostPopularMoviesCache: Codable {
+    let errorMessage: String
+    var items: [MostPopularMovieCache]
+    
+    func convertFromCache() -> MostPopularMovies {
+        var movies = MostPopularMovies(errorMessage: errorMessage, items: [])
+        
+        for movie in items {
+            movies.items.append(MostPopularMovie(title: movie.title, rating: movie.rating, imageURL: movie.imageURL))
+        }
+        
+        return(movies)
+    }
+}
+
+enum MostPopularMoviesCodingKeys: String, CodingKey {
+    case title = "fullTitle"
+    case rating = "imDbRating"
+    case imageURL = "image"
 }
