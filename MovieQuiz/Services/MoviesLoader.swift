@@ -16,7 +16,7 @@ protocol MoviesLoadingProtocol {
     func loadMovies(handler: @escaping (Result<MostPopularMovies, Error>) -> Void)
 }
 
-enum cacheKeys: String {
+enum MostPopularMoviesCacheKeys: String {
     case cacheFileName = "mainCache"
     case moviesCacheKey = "structValue"
 }
@@ -40,8 +40,8 @@ struct MoviesLoader: MoviesLoadingProtocol {
     
     func loadMovies(handler: @escaping (Result<MostPopularMovies, Error>) -> Void) {
         do {
-            let cache = try MoviesCache.loadFromDisk(withName: cacheKeys.cacheFileName.rawValue)
-            if let cachedMovies = cache[cacheKeys.moviesCacheKey.rawValue] {
+            let cache = try MoviesCache.loadFromDisk(withName: MostPopularMoviesCacheKeys.cacheFileName.rawValue)
+            if let cachedMovies = cache[MostPopularMoviesCacheKeys.moviesCacheKey.rawValue] {
                 let movies = cachedMovies.convertFromCache()
                 handler(.success(movies))
                 return
@@ -63,8 +63,8 @@ struct MoviesLoader: MoviesLoadingProtocol {
                     movies.items.removeAll(where: {$0.rating == 0})
                     do {
                         let cache = MoviesCache.init(entryLifetime: 60 * 60 * 24 * 7, maximumEntryCount: 1)
-                        cache[cacheKeys.moviesCacheKey.rawValue] = movies.convertToCache()
-                        try cache.saveToDisk(withName: cacheKeys.cacheFileName.rawValue)
+                        cache[MostPopularMoviesCacheKeys.moviesCacheKey.rawValue] = movies.convertToCache()
+                        try cache.saveToDisk(withName: MostPopularMoviesCacheKeys.cacheFileName.rawValue)
                     } catch let error {
                         print(error.localizedDescription)
                     }

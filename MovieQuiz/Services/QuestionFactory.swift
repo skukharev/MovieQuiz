@@ -7,17 +7,34 @@
 
 import Foundation
 
+typealias ImagesCache = Cache<String, Data>
+
+enum LoadImagesError {
+    case noCacheItem
+}
+
+enum ImagesCacheKeys: String {
+    case cacheFileName = "iamgesCache"
+}
 
 /// Класс для хранения массива вопросов и метода возврата случайного вопроса
 final class QuestionFactory: QuestionFactoryProtocol {
     private let moviesLoader: MoviesLoadingProtocol
     weak var delegate: QuestionFactoryDelegate?
     private var movies: [MostPopularMovie] = []
-    private let imageCache = NSCache<AnyObject, AnyObject>()
-
+    private let imagesCache: ImagesCache
+    private let fileManager: FileManager = FileManager()
+    
     init (moviesLoader: MoviesLoadingProtocol, delegate: QuestionFactoryDelegate? = nil) {
         self.moviesLoader = moviesLoader
         self.delegate = delegate
+        
+        do {
+            imagesCache = try ImagesCache.loadFromDisk(withName: ImagesCacheKeys.cacheFileName.rawValue, using: fileManager)
+        } catch let error {
+            print(error.localizedDescription)
+            imagesCache = ImagesCache(entryLifetime: 60 * 60 * 24 * 7, maximumEntryCount: 250)
+        }
     }
     
     func setDelegate(delegate: QuestionFactoryDelegate) {
@@ -65,11 +82,12 @@ final class QuestionFactory: QuestionFactoryProtocol {
             var imageData = Data()
             do {
                 //TODO: заменить на загрузку асинхронным способом
-                if let imageDataFromCache = imageCache.object(forKey: movie.resizedImageURL as AnyObject) as? Data {
+                if let imageDataFromCache = imagesCache[movie.resizedImageURL.absoluteString] {
                     imageData = imageDataFromCache
                 } else {
                     imageData = try Data(contentsOf: movie.resizedImageURL)
-                    imageCache.setObject(imageData as AnyObject, forKey: movie.resizedImageURL as AnyObject)
+                    imagesCache[movie.resizedImageURL.absoluteString] = imageData
+                    try imagesCache.saveToDisk(withName: ImagesCacheKeys.cacheFileName.rawValue, using: fileManager)
                 }
             } catch {
                 DispatchQueue.main.async { [weak self] in

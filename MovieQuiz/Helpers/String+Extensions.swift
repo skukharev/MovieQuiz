@@ -1,6 +1,5 @@
 //
 //  String+Extensions.swift
-//  MovieQuiz
 //
 //  Created by Сергей Кухарев on 06.04.2024.
 //
