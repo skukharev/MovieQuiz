@@ -47,7 +47,7 @@
                                     </stackView>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="DfX-bL-ElW" userLabel="Preview Image">
                                         <rect key="frame" x="0.0" y="43.666666666666686" width="353" height="529.66666666666652"/>
-                                        <color key="backgroundColor" name="YP White"/>
+                                        <color key="backgroundColor" name="YP Black"/>
                                         <constraints>
                                             <constraint firstAttribute="width" secondItem="DfX-bL-ElW" secondAttribute="height" multiplier="2:3" id="bED-xD-gYZ"/>
                                         </constraints>
@@ -102,17 +102,23 @@
                                     </stackView>
                                 </subviews>
                             </stackView>
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="medium" translatesAutoresizingMaskIntoConstraints="NO" id="wBQ-kr-O5K">
+                                <rect key="frame" x="186.66666666666666" y="428.66666666666669" width="20" height="20"/>
+                            </activityIndicatorView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="vDu-zF-Fre"/>
                         <color key="backgroundColor" name="YP Black"/>
                         <constraints>
                             <constraint firstItem="gtv-4n-GPz" firstAttribute="leading" secondItem="vDu-zF-Fre" secondAttribute="leading" constant="20" id="8Px-Z9-YGy"/>
+                            <constraint firstItem="wBQ-kr-O5K" firstAttribute="centerX" secondItem="vDu-zF-Fre" secondAttribute="centerX" id="D5b-ht-539"/>
+                            <constraint firstItem="wBQ-kr-O5K" firstAttribute="centerY" secondItem="vDu-zF-Fre" secondAttribute="centerY" id="Kz4-Wb-jDy"/>
                             <constraint firstItem="gtv-4n-GPz" firstAttribute="top" secondItem="vDu-zF-Fre" secondAttribute="top" constant="10" id="fwp-H8-849"/>
                             <constraint firstItem="vDu-zF-Fre" firstAttribute="trailing" secondItem="gtv-4n-GPz" secondAttribute="trailing" constant="20" id="phT-eu-kCX"/>
                             <constraint firstItem="vDu-zF-Fre" firstAttribute="bottom" secondItem="gtv-4n-GPz" secondAttribute="bottom" id="ueg-ct-n7d"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="activityIndicator" destination="wBQ-kr-O5K" id="6wy-UB-ZAv"/>
                         <outlet property="counterLabel" destination="aJi-WD-8vp" id="21n-by-DWc"/>
                         <outlet property="imageView" destination="DfX-bL-ElW" id="nQJ-Ln-JSb"/>
                         <outlet property="textLabel" destination="w3I-9G-CiQ" id="SyV-Im-cGi"/>
