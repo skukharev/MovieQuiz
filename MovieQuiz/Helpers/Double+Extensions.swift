@@ -25,5 +25,5 @@ private extension NumberFormatter {
         percentFormatter.numberStyle = .percent
         percentFormatter.locale = Locale.current
         return percentFormatter
-    } ()
+    }()
 }

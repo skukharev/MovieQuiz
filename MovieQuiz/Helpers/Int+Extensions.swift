@@ -20,5 +20,5 @@ private extension NumberFormatter {
         intFormatter.groupingSeparator = " "
         intFormatter.locale = Locale.current
         return intFormatter
-    } ()
+    }()
 }

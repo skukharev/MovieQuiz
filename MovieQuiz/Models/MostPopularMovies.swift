@@ -15,22 +15,19 @@ struct MostPopularMovie: Codable {
     let rating: Double
     /// url с обложкой фильма
     let imageURL: URL
-    
     /// url с обложкой фильма в высоком разрешении
     var resizedImageURL: URL {
            // создаем строку из адреса
            let urlString = imageURL.absoluteString
            //  обрезаем лишнюю часть и добавляем модификатор желаемого качества
            let imageUrlString = urlString.components(separatedBy: "._")[0] + "._V0_UX600_.jpg"
-           
            // пытаемся создать новый адрес, если не получается возвращаем старый
            guard let newURL = URL(string: imageUrlString) else {
                return imageURL
            }
-           
            return newURL
        }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: MostPopularMoviesCodingKeys.self)
 
@@ -47,7 +44,7 @@ struct MostPopularMovie: Codable {
         }
         imageURL = try container.decode(URL.self, forKey: .imageURL)
     }
-    
+
     init(title: String, rating: Double, imageURL: URL) {
         self.title = title
         self.rating = rating
@@ -61,19 +58,13 @@ struct MostPopularMovies: Codable {
     var errorMessage: String
     /// Массив с информацией о фильмах
     var items: [MostPopularMovie]
-    
-    init(errorMessage: String, items: [MostPopularMovie]) {
-        self.errorMessage = errorMessage
-        self.items = items
-    }
-    
     func convertToCache() -> MostPopularMoviesCache {
         var movies = MostPopularMoviesCache(errorMessage: errorMessage, items: [])
-        
         for movie in items {
-            movies.items.append(MostPopularMovieCache(title: movie.title, rating: movie.rating, imageURL: movie.imageURL))
+            movies.items.append(MostPopularMovieCache(title: movie.title,
+                                                      rating: movie.rating,
+                                                      imageURL: movie.imageURL))
         }
-        
         return(movies)
     }
 }
@@ -87,14 +78,11 @@ struct MostPopularMovieCache: Codable {
 struct MostPopularMoviesCache: Codable {
     let errorMessage: String
     var items: [MostPopularMovieCache]
-    
     func convertFromCache() -> MostPopularMovies {
         var movies = MostPopularMovies(errorMessage: errorMessage, items: [])
-        
         for movie in items {
             movies.items.append(MostPopularMovie(title: movie.title, rating: movie.rating, imageURL: movie.imageURL))
         }
-        
         return(movies)
     }
 }

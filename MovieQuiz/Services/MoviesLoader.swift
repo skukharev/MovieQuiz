@@ -28,7 +28,12 @@ enum LoadMoviesError: Error {
 
 struct MoviesLoader: MoviesLoadingProtocol {
     // MARK: - NetworkClient
-    private let networkClient = NetworkClient()
+    private let networkClient: NetworkRouting
+
+    init(networkClient: NetworkRouting = NetworkClient()) {
+        self.networkClient = networkClient
+    }
+
     // MARK: - URL
     private var mostPopularMoviesUrl: URL {
            // Если мы не смогли преобразовать строку в URL, то приложение упадёт с ошибкой
@@ -37,7 +42,7 @@ struct MoviesLoader: MoviesLoadingProtocol {
            }
            return url
     }
-    
+
     func loadMovies(handler: @escaping (Result<MostPopularMovies, Error>) -> Void) {
         do {
             let cache = try MoviesCache.loadFromDisk(withName: MostPopularMoviesCacheKeys.cacheFileName.rawValue)

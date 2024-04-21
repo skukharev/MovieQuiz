@@ -11,12 +11,10 @@ import UIKit
 /// Класс для отображения результатов квиза
 class AlertPresenter: AlertPresenterProtocol {
     weak var view: UIViewController?
-    
     init(view: UIViewController? = nil) {
         self.view = view
     }
-    
-    /// Отображает резултаты квиза
+    /// Отображает результаты квиза
     /// - Parameter alert: Структура для состояния "Результат квиза"
     func showAlert(alert: AlertModel) {
         guard let view = view else {
