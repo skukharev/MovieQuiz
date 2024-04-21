@@ -14,16 +14,19 @@ enum AnswerButton {
 }
 
 /// Презентер приложения
-final class MovieQuizPresenter {
-    weak var viewController: MovieQuizPresenterDelegate?
+final class MovieQuizPresenter: QuestionFactoryDelegate {
     /// Общее количество вопросов в одном квизе
-    let questionsAmount: Int = 10
+    private let questionsAmount: Int = 10
     /// Переменная с индексом текущего вопроса, начальное значение 0 (по этому индексу будем искать вопрос в массиве,
     /// где индекс первого элемента 0, а не 1)
     private var currentQuestionIndex: Int = 0
     /// Переменная со счётчиком правильных ответов, начальное значение закономерно 0
     private var correctAnswers: Int = 0
+    /// Переменная для проверки нажатия на кнопку во время ожидания показа следующего слайда
+    private var inButtonPressHandler: Bool = false
 
+    weak var viewController: MovieQuizPresenterDelegate?
+    private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     private let gameStatistic = StatisticServiceImplementation()
     private var alertPresenter: AlertPresenterProtocol?
@@ -31,23 +34,25 @@ final class MovieQuizPresenter {
     init (viewController: MovieQuizPresenterDelegate? = nil) {
         self.viewController = viewController
         alertPresenter = AlertPresenter(view: viewController as? UIViewController)
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        questionFactory?.loadData()
    }
 
     /// Используется для перевода квиза на следующий вопрос
-    func switchToNextQuestion() {
+    private func switchToNextQuestion() {
         currentQuestionIndex += 1
     }
 
     /// Ипользуется для перевода квиза на начальное состояние - первый вопрос
-    func resetQuestionIndex() {
+    private func resetQuestionIndex() {
         currentQuestionIndex = 0
         correctAnswers = 0
     }
 
     /// Используется для определения окончания квиза
     /// - Returns: возвращает true, если пользователь ответил на последний вопрос в квизе; в противном случе - false
-    func isLastQuestion() -> Bool {
-        return currentQuestionIndex == questionsAmount-1
+    private func isLastQuestion() -> Bool {
+        return currentQuestionIndex == questionsAmount
     }
 
     /// Метод конвертации, который принимает моковый вопрос и возвращает вью модель для экрана вопроса
@@ -66,13 +71,13 @@ final class MovieQuizPresenter {
         guard let viewController = viewController else {
             return
         }
-        if viewController.inButtonTapHandler() {
+        if inButtonPressHandler {
             return
         }
-        viewController.raiseButtonTapHandler()
+        inButtonPressHandler = true
 
         guard let currentQuestion = currentQuestion else {
-            viewController.resetButtonTapHandler()
+            inButtonPressHandler = false
             return
         }
         let buttonBoolView = button == .yesButton ? true : false
@@ -82,11 +87,11 @@ final class MovieQuizPresenter {
         let impactMethod: UINotificationFeedbackGenerator.FeedbackType = isAnswerCorrected ? .success : .error
         impactGenerator.notificationOccurred(impactMethod)
 
-        viewController.showAnswerResult(isCorrect: isAnswerCorrected)
-        switchToNextQuestion()
+        viewController.highlightImageBorder(isCorrectAnswer: isAnswerCorrected)
         if isAnswerCorrected {
             correctAnswers += 1
         }
+        switchToNextQuestion()
 
         if isLastQuestion() {
             gameStatistic.store(correct: correctAnswers, total: questionsAmount)
@@ -100,16 +105,17 @@ final class MovieQuizPresenter {
                                                         message: text,
                                                         buttonText: "Сыграть ещё раз!",
                                                         completion: { [weak self] _ in
-                self?.viewController?.restartQuiz()
+                self?.restartQuiz()
             }))
         } else {
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) { [weak self] in
-                self?.viewController?.requestNextQuestion()
+                self?.questionFactory?.requestNextQuestion()
             }
         }
     }
 
     func didReceiveNextQuestion(question: QuizQuestion?) {
+        inButtonPressHandler = false
         guard let question = question else {
             return
         }
@@ -119,5 +125,51 @@ final class MovieQuizPresenter {
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.show(quiz: viewModel)
         }
+    }
+
+    private func restartQuiz() {
+        resetQuestionIndex()
+        questionFactory?.requestNextQuestion()
+    }
+
+    func didLoadDataFromServer() {
+        viewController?.hideLoadingIndicator()
+        restartQuiz()
+    }
+
+    func didFailToLoadData(with error: any Error) {
+        showNetworkError(message: error.localizedDescription) {[weak self] _ in
+            guard let self = self else {
+                return
+            }
+            viewController?.showLoadingIndicator()
+            questionFactory?.loadData()
+        }
+    }
+
+    func didFailToLoadImage(with error: any Error) {
+        showNetworkError(message: error.localizedDescription) {[weak self] _ in
+            guard let self = self else {
+                return
+            }
+            questionFactory?.requestNextQuestion()
+        }
+    }
+
+    private func showNetworkError(message: String, handler: ((UIAlertAction) -> Void)?) {
+        viewController?.hideLoadingIndicator() // скрываем индикатор загрузки
+
+        alertPresenter?.showAlert(alert: AlertModel(title: "Что-то пошло не так(",
+                                                    message: message,
+                                                    buttonText: "Попробовать ещё раз",
+                                                    completion: handler))
+    }
+
+    func showLoadingIndicator() {
+        viewController?.showLoadingIndicator()
+    }
+
+    func hideLoadingIndicator() {
+        viewController?.hideLoadingIndicator()
     }
 }
