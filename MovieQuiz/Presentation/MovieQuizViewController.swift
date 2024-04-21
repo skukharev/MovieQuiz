@@ -1,24 +1,15 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
+final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, MovieQuizPresenterDelegate {
     @IBOutlet private weak var counterLabel: UILabel!
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
 
     private var questionFactory: QuestionFactoryProtocol?
+    private var presenter: MovieQuizPresenter?
     private var alertPresenter: AlertPresenterProtocol?
-    private var currentQuestion: QuizQuestion?
-    private var gameStatistic: StatisticServiceProtocol?
-    private let presenter = MovieQuizPresenter()
 
-    private enum AnswerButton {
-        case yesButton
-        case noButton
-    }
-
-    /// Переменная со счётчиком правильных ответов, начальное значение закономерно 0
-    private var correctAnswers: Int = 0
     /// Переменная для проверки нажатия на кнопку во время ожидания показа следующего слайда
     private var inButtonPressHandler: Bool = false
 
@@ -28,40 +19,29 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
 
         imageView.layer.cornerRadius = 20
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        presenter = MovieQuizPresenter(viewController: self)
         alertPresenter = AlertPresenter(view: self)
-        gameStatistic = StatisticServiceImplementation()
         showLoadingIndicator()
         questionFactory?.loadData()
     }
 
     // MARK: - QuestionFactoryDelegate
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
-            return
-        }
-
-        currentQuestion = question
-        let viewModel = presenter.convert(model: question)
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else {
-                return
-            }
-            self.show(quiz: viewModel)
-        }
+        presenter?.didReceiveNextQuestion(question: question)
     }
 
     // MARK: - Actions
     @IBAction private func yesButtonClicked(_ sender: Any) {
-        buttonPressHandler(button: AnswerButton.yesButton)
+        presenter?.buttonPressHandler(button: AnswerButton.yesButton)
     }
 
     @IBAction private func noButtonClicked(_ sender: Any) {
-        buttonPressHandler(button: AnswerButton.noButton)
+        presenter?.buttonPressHandler(button: AnswerButton.noButton)
     }
 
     /// Выводит  на экран вопрос, который принимает на вход вью модель вопроса и ничего не возвращает
     /// - Parameter step: вью модель вопроса
-    private func show(quiz step: QuizStepViewModel) {
+    func show(quiz step: QuizStepViewModel) {
         counterLabel.text = step.questionNumber
         imageView.image = step.image
         textLabel.text = step.question
@@ -71,73 +51,18 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
 
     /// Изменяет цвет рамки, принимая на вход булевое значение, отражающее статус ответа на вопрос
     /// - Parameter isCorrect: булевое значение, отражающее статус ответа на вопрос
-    private func showAnswerResult(isCorrect: Bool) {
+    func showAnswerResult(isCorrect: Bool) {
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
     }
 
-    /// Обработчик нажатия на кнопки, реализует логику подсчёта и вывод результатов квиза
-    /// - Parameter button: нажатая кнопка: ДА (.yes) либо НЕТ (.no)
-    private func buttonPressHandler(button: AnswerButton) {
-        if inButtonPressHandler {
-            return
-        }
-        inButtonPressHandler = true
-
-        guard let currentQuestion = currentQuestion else {
-            inButtonPressHandler = false
-            return
-        }
-        let buttonBoolView = button == .yesButton ? true : false
-        let isAnswerCorrected = currentQuestion.correctAnswer == buttonBoolView
-
-        let impactGenerator = UINotificationFeedbackGenerator()
-        let impactMethod: UINotificationFeedbackGenerator.FeedbackType = isAnswerCorrected ? .success : .error
-        impactGenerator.notificationOccurred(impactMethod)
-
-        showAnswerResult(isCorrect: isAnswerCorrected)
-        presenter.switchToNextQuestion()
-        if isAnswerCorrected {
-            correctAnswers += 1
-        }
-
-        if presenter.isLastQuestion() {
-            if let gameStatistic = gameStatistic {
-                gameStatistic.store(correct: correctAnswers, total: presenter.questionsAmount)
-                let text = """
-                            Ваш результат: \(correctAnswers.intToString)/\(presenter.questionsAmount.intToString)
-                            Количество сыгранных квизов: \(gameStatistic.gamesCount.intToString)
-                            Рекорд: \(gameStatistic.bestGame.correct.intToString)/\(gameStatistic.bestGame.total.intToString) (\(gameStatistic.bestGame.date.dateTimeString))
-                            Средняя точность: \(gameStatistic.totalAccuracy.percentToString(fractionalLength: 2))
-                            """
-                alertPresenter?.showAlert(alert: AlertModel(title: "Этот раунд окончен!",
-                                                           message: text,
-                                                           buttonText: "Сыграть ещё раз!",
-                                                           completion: {[weak self] _ in
-                                                                        guard let self = self else {
-                                                                            return
-                                                                        }
-                                                                        self.restartQuiz()}))
-            }
-        } else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) { [weak self] in
-                guard let self = self else {
-                    return
-                }
-                self.questionFactory?.requestNextQuestion()
-            }
-        }
-    }
-
     /// Обнуляет текущие результаты квиза и перезапускает квиз
-    private func restartQuiz() {
-        guard let questionFactory = questionFactory else {
+    func restartQuiz() {
+        guard let questionFactory = questionFactory, let presenter = presenter else {
             return
         }
 
-        correctAnswers = 0
         presenter.resetQuestionIndex()
-
         questionFactory.requestNextQuestion()
     }
 
@@ -182,5 +107,25 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             }
             questionFactory?.requestNextQuestion()
         }
+    }
+
+    /// Используется для определения, закончил ли работу обработчик события нажатия кнопок presenter.buttonPressHandler
+    /// - Returns: Возвращает true, если обработчик presenter.buttonPressHandler не закончил обработку события нажатия кнопки; возвращает false в противном случае
+    func inButtonTapHandler() -> Bool {
+        return inButtonPressHandler
+    }
+
+    /// Используется для сброса флага работы обработчика события нажатия кнопок "Да" и "Нет" на сториборде
+    func resetButtonTapHandler() {
+        inButtonPressHandler = false
+    }
+
+    /// Используется для установки флага работы обработчика события нажатия кнопок "Да" и "Нет" на сториборде
+    func raiseButtonTapHandler() {
+        inButtonPressHandler = true
+    }
+
+    func requestNextQuestion() {
+        questionFactory?.requestNextQuestion()
     }
 }

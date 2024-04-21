@@ -37,10 +37,6 @@ final class QuestionFactory: QuestionFactoryProtocol {
         }
     }
 
-    func setDelegate(delegate: QuestionFactoryDelegate) {
-        self.delegate = delegate
-    }
-
     func loadData() {
         let utilityQueue = DispatchQueue(label: "utility", qos: .utility)
         utilityQueue.async {[weak self] in
