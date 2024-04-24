@@ -8,11 +8,6 @@
 import Foundation
 import UIKit
 
-enum AnswerButton {
-    case yesButton
-    case noButton
-}
-
 /// Презентер приложения
 final class MovieQuizPresenter: QuestionFactoryDelegate {
     /// Общее количество вопросов в одном квизе
@@ -23,20 +18,21 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     /// Переменная со счётчиком правильных ответов, начальное значение закономерно 0
     private var correctAnswers: Int = 0
     /// Переменная для проверки нажатия на кнопку во время ожидания показа следующего слайда
-    private var inButtonPressHandler: Bool = false
+    private var inButtonPressHandler = false
 
     weak var viewController: MovieQuizPresenterDelegate?
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
-    private let gameStatistic = StatisticServiceImplementation()
+    private let gameStatistic: StatisticServiceProtocol?
     private var alertPresenter: AlertPresenterProtocol?
 
     init (viewController: MovieQuizPresenterDelegate? = nil) {
         self.viewController = viewController
         alertPresenter = AlertPresenter(view: viewController as? UIViewController)
+        gameStatistic = StatisticServiceImplementation()
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         questionFactory?.loadData()
-   }
+    }
 
     /// Используется для перевода квиза на следующий вопрос
     private func switchToNextQuestion() {
@@ -60,7 +56,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     /// - Returns: Структура с view model вопроса
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         let picture = UIImage(data: model.image) ?? UIImage()
-        let questionNumberText: String = (currentQuestionIndex+1).intToString+"/"+questionsAmount.intToString
+        let questionNumberText: String = (currentQuestionIndex + 1).intToString + "/" + questionsAmount.intToString
 
         return QuizStepViewModel(image: picture, question: model.text, questionNumber: questionNumberText)
     }
@@ -94,19 +90,21 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         switchToNextQuestion()
 
         if isLastQuestion() {
-            gameStatistic.store(correct: correctAnswers, total: questionsAmount)
-            let text = """
+            if let gameStatistic = gameStatistic {
+                gameStatistic.store(correct: correctAnswers, total: questionsAmount)
+                let text = """
                         Ваш результат: \(correctAnswers.intToString)/\(questionsAmount.intToString)
                         Количество сыгранных квизов: \(gameStatistic.gamesCount.intToString)
                         Рекорд: \(gameStatistic.bestGame.correct.intToString)/\(gameStatistic.bestGame.total.intToString) (\(gameStatistic.bestGame.date.dateTimeString))
                         Средняя точность: \(gameStatistic.totalAccuracy.percentToString(fractionalLength: 2))
                         """
-            alertPresenter?.showAlert(alert: AlertModel(title: "Этот раунд окончен!",
-                                                        message: text,
-                                                        buttonText: "Сыграть ещё раз!",
-                                                        completion: { [weak self] _ in
-                self?.restartQuiz()
-            }))
+                alertPresenter?.showAlert(alert: AlertModel(title: "Этот раунд окончен!",
+                                                            message: text,
+                                                            buttonText: "Сыграть ещё раз!",
+                                                            completion: { [weak self] _ in
+                    self?.restartQuiz()
+                }))
+            }
         } else {
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) { [weak self] in
                 self?.questionFactory?.requestNextQuestion()

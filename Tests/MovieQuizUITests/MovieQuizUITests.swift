@@ -8,7 +8,6 @@ import Foundation
 import XCTest
 
 final class MovieQuizUITests: XCTestCase {
-
     var app: XCUIApplication!
 
     override func setUpWithError() throws {

@@ -9,38 +9,21 @@ import Foundation
 
 typealias MoviesCache = Cache<String, MostPopularMoviesCache>
 
-/// Протокол загрузчика данных  о кинофильмах
-protocol MoviesLoadingProtocol {
-    /// Загружает данные о кинофильмах в структуру MostPopularMovies
-    /// - Parameter handler: Обработчик завершения загрузки данных.
-    func loadMovies(handler: @escaping (Result<MostPopularMovies, Error>) -> Void)
-}
-
-enum MostPopularMoviesCacheKeys: String {
-    case cacheFileName = "mainCache"
-    case moviesCacheKey = "structValue"
-}
-
-enum LoadMoviesError: Error {
-    case noCacheItem
-    case otherNetworkError(String)
-}
-
 struct MoviesLoader: MoviesLoadingProtocol {
     // MARK: - NetworkClient
-    private let networkClient: NetworkRouting
-
-    init(networkClient: NetworkRouting = NetworkClient()) {
-        self.networkClient = networkClient
-    }
+    private let networkClient: NetworkRoutingProtocol
 
     // MARK: - URL
     private var mostPopularMoviesUrl: URL {
-           // Если мы не смогли преобразовать строку в URL, то приложение упадёт с ошибкой
-           guard let url = URL(string: "https://tv-api.com/en/API/MostPopularMovies/k_zcuw1ytf") else {
-               preconditionFailure("Unable to construct mostPopularMoviesUrl")
-           }
-           return url
+        // Если мы не смогли преобразовать строку в URL, то приложение упадёт с ошибкой
+        guard let url = URL(string: "https://tv-api.com/en/API/MostPopularMovies/k_zcuw1ytf") else {
+            preconditionFailure("Unable to construct mostPopularMoviesUrl")
+        }
+        return url
+    }
+
+    init(networkClient: NetworkRoutingProtocol = NetworkClient()) {
+        self.networkClient = networkClient
     }
 
     func loadMovies(handler: @escaping (Result<MostPopularMovies, Error>) -> Void) {
@@ -62,10 +45,10 @@ struct MoviesLoader: MoviesLoadingProtocol {
             case .success(let data):
                 do {
                     var movies = try JSONDecoder().decode(MostPopularMovies.self, from: data)
-                    if movies.errorMessage != "" {
+                    if !movies.errorMessage.isEmpty {
                         throw movies.errorMessage
                     }
-                    movies.items.removeAll(where: {$0.rating == 0})
+                    movies.items.removeAll(where: { $0.rating == 0 })
                     do {
                         let cache = MoviesCache.init(entryLifetime: 60 * 60 * 24 * 7, maximumEntryCount: 1)
                         cache[MostPopularMoviesCacheKeys.moviesCacheKey.rawValue] = movies.convertToCache()

@@ -8,28 +8,10 @@
 import XCTest
 @testable import MovieQuiz
 
-final class MovieQuizViewControllerMock: MovieQuizPresenterDelegate {
-    func show(quiz step: QuizStepViewModel) {
-
-    }
-
-    func highlightImageBorder(isCorrectAnswer: Bool) {
-
-    }
-
-    func showLoadingIndicator() {
-
-    }
-
-    func hideLoadingIndicator() {
-
-    }
-}
-
 final class MovieQuizPresenterTests: XCTestCase {
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
+     }
 
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
