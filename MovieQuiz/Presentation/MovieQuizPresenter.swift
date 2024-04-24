@@ -102,9 +102,11 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
                     title: "Этот раунд окончен!",
                     message: text,
                     buttonText: "Сыграть ещё раз!",
-                    completion: { [weak self] _ in
-                                    self?.restartQuiz()
-                                }))
+                    completion: 
+                        {[weak self] _ in
+                            self?.restartQuiz()
+                        }
+                ))
             }
         } else {
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) { [weak self] in
