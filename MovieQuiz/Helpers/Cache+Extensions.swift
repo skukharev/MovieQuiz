@@ -109,9 +109,7 @@ final class Cache<Key: Hashable, Value> {
     ///   - dateProvider: Дата, используемая для проверки устаревания записи кэша. По умолчанию, текущая дата
     ///   - entryLifetime: Срок жизни в секундах записи в кэше. По умолчанию, 24 часа
     ///   - maximumEntryCount: Максимальное количество хранимых элементов в кэше до перезаписи
-    init(dateProvider: @escaping () -> Date = Date.init,
-         entryLifetime: TimeInterval = 24 * 60 * 60,
-         maximumEntryCount: Int = 50) {
+    init(dateProvider: @escaping () -> Date = Date.init, entryLifetime: TimeInterval = 24 * 60 * 60, maximumEntryCount: Int = 50) {
         self.dateProvider = dateProvider
         self.entryLifetime = entryLifetime
         wrapped.countLimit = maximumEntryCount

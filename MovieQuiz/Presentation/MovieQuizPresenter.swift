@@ -98,12 +98,13 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
                         Рекорд: \(gameStatistic.bestGame.correct.intToString)/\(gameStatistic.bestGame.total.intToString) (\(gameStatistic.bestGame.date.dateTimeString))
                         Средняя точность: \(gameStatistic.totalAccuracy.percentToString(fractionalLength: 2))
                         """
-                alertPresenter?.showAlert(alert: AlertModel(title: "Этот раунд окончен!",
-                                                            message: text,
-                                                            buttonText: "Сыграть ещё раз!",
-                                                            completion: { [weak self] _ in
-                    self?.restartQuiz()
-                }))
+                alertPresenter?.showAlert(alert: AlertModel(
+                    title: "Этот раунд окончен!",
+                    message: text,
+                    buttonText: "Сыграть ещё раз!",
+                    completion: { [weak self] _ in
+                                    self?.restartQuiz()
+                                }))
             }
         } else {
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1)) { [weak self] in
@@ -157,10 +158,11 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     private func showNetworkError(message: String, handler: ((UIAlertAction) -> Void)?) {
         viewController?.hideLoadingIndicator() // скрываем индикатор загрузки
 
-        alertPresenter?.showAlert(alert: AlertModel(title: "Что-то пошло не так(",
-                                                    message: message,
-                                                    buttonText: "Попробовать ещё раз",
-                                                    completion: handler))
+        alertPresenter?.showAlert(alert: AlertModel(
+            title: "Что-то пошло не так(",
+            message: message,
+            buttonText: "Попробовать ещё раз",
+            completion: handler))
     }
 
     func showLoadingIndicator() {

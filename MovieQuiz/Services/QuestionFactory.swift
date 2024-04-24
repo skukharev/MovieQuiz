@@ -21,8 +21,9 @@ final class QuestionFactory: QuestionFactoryProtocol {
         self.moviesLoader = moviesLoader
         self.delegate = delegate
         do {
-            imagesCache = try ImagesCache.loadFromDisk(withName: ImagesCacheKeys.cacheFileName.rawValue,
-                                                       using: fileManager)
+            imagesCache = try ImagesCache.loadFromDisk(
+                withName: ImagesCacheKeys.cacheFileName.rawValue,
+                using: fileManager)
         } catch let error {
             print(error.localizedDescription)
             imagesCache = ImagesCache(entryLifetime: 60 * 60 * 24 * 7, maximumEntryCount: 250)

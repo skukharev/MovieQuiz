@@ -16,9 +16,10 @@ struct MostPopularMovies: Codable {
     func convertToCache() -> MostPopularMoviesCache {
         var movies = MostPopularMoviesCache(errorMessage: errorMessage, items: [])
         for movie in items {
-            movies.items.append(MostPopularMovieCache(title: movie.title,
-                                                      rating: movie.rating,
-                                                      imageURL: movie.imageURL))
+            movies.items.append(MostPopularMovieCache(
+                title: movie.title,
+                rating: movie.rating,
+                imageURL: movie.imageURL))
         }
         return(movies)
     }
