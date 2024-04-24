@@ -12,7 +12,7 @@ protocol NetworkRouting {
 }
 
 /// Отвечает за загрузку данных по URL
-struct NetworkClient: NetworkRouting {
+struct NetworkClient: NetworkRoutingProtocol {
     private enum NetworkError: Error {
         case codeError
     }

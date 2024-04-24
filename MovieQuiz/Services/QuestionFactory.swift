@@ -9,21 +9,13 @@ import Foundation
 
 typealias ImagesCache = Cache<String, Data>
 
-enum LoadImagesError {
-    case noCacheItem
-}
-
-enum ImagesCacheKeys: String {
-    case cacheFileName = "iamgesCache"
-}
-
 /// Класс для хранения массива вопросов и метода возврата случайного вопроса
 final class QuestionFactory: QuestionFactoryProtocol {
     private let moviesLoader: MoviesLoadingProtocol
     weak var delegate: QuestionFactoryDelegate?
     private var movies: [MostPopularMovie] = []
     private let imagesCache: ImagesCache
-    private let fileManager: FileManager = FileManager()
+    private let fileManager = FileManager()
 
     init (moviesLoader: MoviesLoadingProtocol, delegate: QuestionFactoryDelegate? = nil) {
         self.moviesLoader = moviesLoader

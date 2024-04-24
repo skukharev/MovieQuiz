@@ -7,15 +7,14 @@
 import Foundation
 
 extension Double {
-
     /// Конвертирует число в строку в формате процента с заданным количеством символов после разделителя дробной части
     /// - Parameter fractionalLength: Количество символов после разделителя дробной части
     /// - Returns: Возвращает строку
     func percentToString(fractionalLength: Int) -> String {
-        let defaultFormatter: NumberFormatter = NumberFormatter.defaultPercent
+        let defaultFormatter = NumberFormatter.defaultPercent
         defaultFormatter.minimumFractionDigits = fractionalLength
         defaultFormatter.maximumFractionDigits = fractionalLength
-        return defaultFormatter.string(from: (self as NSNumber))!
+        return defaultFormatter.string(from: (self as NSNumber)) ?? ""
     }
 }
 

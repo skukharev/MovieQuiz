@@ -9,7 +9,7 @@ import Foundation
 extension Int {
     /// Конвертирует число в строку с принятым в РФ разделителем групп разрядов " "
     var intToString: String {
-        return NumberFormatter.defaultInt.string(from: (self as NSNumber))!
+        return NumberFormatter.defaultInt.string(from: (self as NSNumber)) ?? ""
     }
 }
 

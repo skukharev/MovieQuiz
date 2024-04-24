@@ -7,44 +7,42 @@
 import Foundation
 
 /*
-  Расширение для управления кэшированием структур данных (в ОЗУ и на диске)
+    Расширение для управления кэшированием структур данных (в ОЗУ и на диске)
  
-  Использование:
+    Использование:
 
-  1. Структура должна соответствовать протоколам  Codable
- struct TestStruct: Codable {
-     var id = UUID()
-     let name: String
+    1. Структура должна соответствовать протоколам  Codable
+    struct TestStruct: Codable {
+        var id = UUID()
+        let name: String
      
-     init (name: String) {
-         self.name = name
-     }
- }
+        init (name: String) {
+            self.name = name
+        }
+    }
  
- 2. Инициализация и запись в кэш
- let element = TestStruct(name: "test element")
- let cache = Cache<TestStruct.ID, TestStruct>()
- cache[element.id] = element
+    2. Инициализация и запись в кэш
+    let element = TestStruct(name: "test element")
+    let cache = Cache<TestStruct.ID, TestStruct>()
+    cache[element.id] = element
  
- 3. Запись кэша на диск
- try? cache.saveToDisk(withName: "myCache")
+    3. Запись кэша на диск
+    try? cache.saveToDisk(withName: "myCache")
  
- 4. Загрузка кэша с диска
- let cache = Cache<TestStruct.ID, TestStruct>()
- try cache.loadFromDisk(withName: "myCache")
- // Обработка ошибок
- enum FileErrors: Error {
-     case cacheFileNotFound     //Файл кэша не найден на диске
- }
+    4. Загрузка кэша с диска
+    let cache = Cache<TestStruct.ID, TestStruct>()
+    try cache.loadFromDisk(withName: "myCache")
+    // Обработка ошибок
+    enum FileErrors: Error {
+        case cacheFileNotFound     //Файл кэша не найден на диске
+    }
 
  
- 5. Извлечение из кэша
- if let cachedElement = cache[UUID(uuidString: "BEC9F2A2-FA83-43D3-91CF-74D1751581EC")!] {
-     print("Элемент \(cachedElement) загружен из кэша")
- }
- 
- */
-
+    5. Извлечение из кэша
+    if let cachedElement = cache[UUID(uuidString: "BEC9F2A2-FA83-43D3-91CF-74D1751581EC")!] {
+        print("Элемент \(cachedElement) загружен из кэша")
+    }
+*/
 private extension Cache {
     final class WrappedKey: NSObject {
         let key: Key

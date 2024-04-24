@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 /// Класс для отображения результатов квиза
-class AlertPresenter: AlertPresenterProtocol {
+final class AlertPresenter: AlertPresenterProtocol {
     weak var view: UIViewController?
     init(view: UIViewController? = nil) {
         self.view = view
